@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Musical Keyboard</title>
+		<link rel="icon" href="pageicon.png">
+		<style>
+			body{padding:0;margin:0;background-image:url("background3.jpg");background-size:cover;background-repeat:repeat;align-items:center;justify-center:true;text-align:center;}
+			#keys{padding:0;position:relative;margin:20px auto;width:60%;transform:preserve-3d}
+			#octave{width:100%;margin:0 auto;display:block;}
+			[id$="pressed"]{opacity:0;height:100%;position:absolute;top:0%;cursor:pointer;}
+			#topcpressed{right:.1%;}
+			#cpressed{left:.1%;}
+			#dpressed{left:12.8%;}
+			#epressed{left:25.8%;}
+			#fpressed{left:38%;top:-.1%}
+			#gpressed{left:50.4%;}
+			#apressed{left:63.2%;}
+			#bpressed{left:76.1%;}
+			#cmpressed{height:61.7%;left:8.2%}
+			#ebpressed{height:61.7%;left:21%}
+			#fspressed{height:61.7%;left:46%}
+			#abpressed{height:61.7%;left:58.8%}
+			#bbpressed{height:61.7%;left:71.5%}
+			#edit{width:4%;position:absolute;left:-2%;top:-3%;opacity:0;cursor:pointer;transition:all 50ms ease-in-out}
+			h1{margin:20px auto;display:block;font-family:"Copperplate Gothic";color:white;text-align:center;}
+			#editbigger{width:5%;position:absolute;left:-2%;top:-3%;opacity:1;cursor:pointer;transition:all 50ms ease-in-out}
+		</style>
+	</head>
+	<body>
+		<h1>Musical Keyboard</h1>
+		<div id="keys">
+			<img src="keyboard_one_octave.png" id="octave"/>
+			<img src="whiterightcut.png" id="cpressed"/>
+			<img src="whitebothcut.png" id="dpressed"/>
+			<img src="whiteleftcut.png" id="epressed"/>
+			<img src="whiterightcut.png" id="fpressed"/>
+			<img src="whitebothcut.png" id="gpressed"/>
+			<img src="whitebothcut.png" id="apressed"/>
+			<img src="whiteleftcut.png" id="bpressed"/>
+			<img src="topcpressed.png" id="topcpressed"/>
+			<img src="blackkeypressed.png" id="cmpressed"/>
+			<img src="blackkeypressed.png" id="ebpressed"/>
+			<img src="blackkeypressed.png" id="fspressed"/>
+			<img src="blackkeypressed.png" id="abpressed"/>
+			<img src="blackkeypressed.png" id="bbpressed"/>
+		</div>
+		<!--<input type="button" value="C" id="c"/>
+		<input type="button" value="D" id="d"/>
+		<input type="button" value="E" id="e"/>
+		<input type="button" value="F" id="f"/>
+		<input type="button" value="G" id="g"/>
+		<input type="button" value="A" id="a"/>
+		<input type="button" value="B" id="b"/>
+		<input type="button" value="C" id="c2"/>-->
+	</body>
+	<script>
+		function Note(notename, key, pressed, norSource/*, susSource*/)
+		{
+			this.notename = notename;
+			this.key = key;
+			this.pressed = document.getElementById(pressed);
+			this.norSource = norSource;
+			//this.susSource = susSource;
+			this.isPressed = function()
+							{
+								//this.pressed.setAttribute("opacity", "1");
+								if(this.pressed)
+								{
+									console.log("in isPressed " + pressed);
+									this.pressed.style.opacity = 1;
+								}
+								//document.getElementById(pressed).opacity = 1;
+							};
+			this.isReleased = function()
+							{
+								if(this.pressed)
+									this.pressed.style.opacity=0;
+							};
+			this.norplay = function()
+						{
+							var audio = new Audio(this.norSource);
+							audio.play();
+						};
+			/*this.susplay = function()
+						{
+							if(this.susSource)
+							{
+								var audio = new Audio(this.susSource);
+								audio.currentTime = 1;
+								audio.play();
+							}
+						};*/
+			
+		}
+		
+		function press(e, notesarray)
+		{
+			var keypressed = e.key.toLowerCase();
+			var flag=0;
+			var i=0;
+			for(i=0; i<notesarray.length; ++i)
+			{
+				if(keypressed == notesarray[i].key)
+				{
+					flag=1;
+					break;
+				}
+			}
+			if(flag)
+			{
+				if(!(keypressed in heldkeys))
+				{
+					notesarray[i].isPressed();
+					notesarray[i].norplay();
+					heldkeys[keypressed]=true;
+				}
+				/*else if(!(keypressed in suskeys))
+				{
+					notesarray[i].susplay();
+					suskeys[keypressed] = true;
+				}*/
+			}
+		}
+		
+		function release(e, notesarray)
+		{
+			var keypressed = e.key.toLowerCase();
+			for(var i=0; i<notesarray.length; ++i)
+			{
+				if(keypressed == notesarray[i].key)
+				{
+					notesarray[i].isReleased();
+					delete heldkeys[keypressed];
+					//delete suskeys[keypressed];
+					break;
+				}
+			}
+		}
+		
+		
+		function editkeys(notesarray)
+		{
+			var newnotes = [];
+			for(var i=0; i<notesarray.length; ++i)
+			{
+				var note = new Note(notesarray[i].notename, notesarray[i].key, notesarray[i].pressed.id, notesarray[i].norSource);
+				newnotes[i] = note;
+			}
+			var editdiv = document.createElement("div");
+			editdiv.setAttribute("id", "editdiv");
+			editdiv.style= "background-color:white;border-radius:10px;position:absolute;top:5%;left:10%;z-index:1;width:80%;height:90%;display:block;";
+			document.body.appendChild(editdiv);
+			var container = document.getElementById("keys");
+			container.removeEventListener("mouseenter", _show);
+			container.removeEventListener("mouseleave", removeedit);
+			document.body.removeEventListener("keydown", _press);
+			document.body.removeEventListener("keyup", _release);
+			container.removeChild(document.getElementById("editbigger"));
+			container.style= "z-index:2";
+			container.style.width = "35%";
+			var ok = document.createElement("img");
+			ok.setAttribute("id", "ok");
+			ok.setAttribute("src", "ok.png");
+			ok.style = "cursor:pointer;width:5%;position:absolute;top:-3%;right:-2.5%;";
+			ok.addEventListener("click", function(){alterall(newnotes, notesarray)}, false);
+			var close = document.createElement("img");
+			close.setAttribute("src", "close.png");
+			close.setAttribute("id", "close");
+			close.style = "cursor:pointer;width:6%;position:absolute;top:-5%;left:-2.5%;";
+			close.addEventListener("click", canceledit, false);
+			var keylabel = document.createElement("label");
+			keylabel.setAttribute("id", "keylabel");
+			keylabel.textContent = "";
+			keylabel.style = "font-family:'Copperplate Gothic';font-size:35px;position:absolute;bottom:27%;left:47%";
+			
+			var keyname = document.createElement("label");
+			keyname.setAttribute("id","keyname");
+			keyname.textContent = "";
+			keyname.style = "font-family:'Copperplate Gothic';font-size:100px;position:absolute;bottom:10%;left:47%;";
+			editdiv.appendChild(ok);
+			editdiv.appendChild(close);
+			editdiv.appendChild(keyname);
+			editdiv.appendChild(keylabel);
+			function changekey(e, newnotes)
+			{
+				
+				for(var i=0; i<newnotes.length; ++i)
+				{
+					if(e.target == newnotes[i].pressed)
+					{
+						newnotes[i].isPressed();
+						pos = i;
+					}
+					else
+						newnotes[i].isReleased();
+				}
+				console.log(pos);
+				keylabel.textContent = "Key:";
+				keyname.textContent = newnotes[pos].key;
+				
+				
+				document.body.addEventListener("keyup", retChanged, false);
+				console.log("in changekey");
+			}
+			function retChanged(e)
+			{
+				console.log(pos);
+				
+				keyname.textContent = e.key.toUpperCase();
+				newnotes[pos].key = e.key.toLowerCase();
+				
+				console.log("in retChanged");
+			}
+			var keys = document.querySelectorAll("[id$='pressed']");
+			
+			function changeIt(e){changekey(e, newnotes)}
+			
+			for(var i=0; i<keys.length; ++i)
+			{
+				//keys[i].style.opacity="1";
+				//keys[i].style.zIndex="1";
+				keys[i].addEventListener("click", changeIt, false);
+			}
+			function alterall(newnotes, notesarray)
+			{
+				var flag = 0;
+				var newkeys = {};
+				for(var i=0; i<newnotes.length; ++i)
+				{
+					if(newnotes[i].key in newkeys)
+					{
+						flag = 1;
+						break;
+					}
+					else
+						newkeys[newnotes[i].key]=true;
+				}
+				if(!flag)
+				{
+					document.body.removeChild(editdiv);
+					document.body.removeEventListener("keyup", retChanged, false);
+					document.body.addEventListener("keydown", _press, false);
+					document.body.addEventListener("keyup", _release, false);
+					container.addEventListener("mouseenter", _show, false);
+					container.addEventListener("mouseleave", removeedit, false);
+					container.style = "z-index:1;width:60%";
+					for(var i=0; i<keys.length; ++i)
+					{
+						keys[i].style.opacity = 0;
+						keys[i].removeEventListener("click", changeIt, false);
+					}
+					for(var i=0; i<notesarray.length; ++i)
+						notesarray[i] = newnotes[i];
+					console.log("Changed");
+				}
+				else
+					window.alert("Key Clash Error. Please correct to continue.");
+			}
+			function canceledit()
+			{
+				document.body.removeChild(editdiv);
+				document.body.removeEventListener("keyup", retChanged, false);
+				document.body.addEventListener("keydown", _press, false);
+				document.body.addEventListener("keyup", _release, false);
+				container.addEventListener("mouseenter", _show, false);
+				container.addEventListener("mouseleave", removeedit, false);
+				container.style = "z-index:1;width:60%";
+				for(var i=0; i<keys.length; ++i)
+				{
+					keys[i].style.opacity = 0;
+					keys[i].removeEventListener("click", changeIt, false);
+				}
+				console.log("No Change");
+			}
+			console.log("in editkeys");
+		}
+		function showedit(notesarray)
+		{
+			if(!document.getElementById("edit"))
+			{
+				var edit = document.createElement("img");
+				edit.setAttribute("src", "edit.png");
+				edit.setAttribute("id", "edit");
+				edit.addEventListener("mouseenter", bigger, false);
+				edit.addEventListener("mouseleave", smaller, false);
+				edit.addEventListener("click", function _edit(){editkeys(notesarray)}, false);
+				edit.style.opacity = 0.75;
+				var last_note = document.getElementById("bbpressed");
+				last_note.parentNode.insertBefore(edit, last_note.nextSibling);
+			}
+			console.log("in showedit");
+		}
+		function removeedit()
+		{
+			
+				var edit = document.querySelector("#edit");
+				/*if(edit && edit.style.opacity == 0.75)
+					edit.style.opacity = 0;*/
+				if(edit)
+					edit.parentNode.removeChild(edit);
+				console.log("in removeedit");
+			
+		}
+		
+		function bigger(e)
+		{
+			var edit = document.querySelector("#edit");
+			if(edit)
+			{
+				
+				edit.setAttribute("id", "editbigger");
+				edit.style.opacity = 1;
+				e.cancelBubble=true;
+			}
+			console.log("in bigger");
+		}
+		
+		function smaller(e)
+		{
+			
+			var edit = document.querySelector("#editbigger");
+			edit.setAttribute("id", "edit");
+			edit.style.opacity = 0.75;
+			e.cancelBubble=true;
+			console.log("in smaller");
+		}
+		
+		
+		
+		heldkeys = {};
+		//suskeys = {};
+		var notesarray = [new Note("c", "d", "cpressed", "wav/c1.wav"), new Note("d", "f", "dpressed", "wav/d1.wav"), new Note("e", "g", "epressed", "wav/e1.wav"), new Note("f", "h", "fpressed", "wav/f1.wav"), new Note("g", "j", "gpressed", "wav/g1.wav"), new Note("a", "k", "apressed", "wav/a1.wav"), new Note("b", "l", "bpressed", "wav/b1.wav"), new Note("topc", ";", "topcpressed", "wav/c2.wav"), new Note("bb", "i", "bbpressed", "wav/a1s.wav"), new Note("ab", "u", "abpressed", "wav/g1s.wav"), new Note("gs", "y", "fspressed", "wav/f1s.wav"), new Note("eb", "t", "ebpressed", "wav/d1s.wav"), new Note("cs", "r", "cmpressed", "wav/c1s.wav")];
+		console.log(notesarray.length);
+		function _press(e){press(e, notesarray)}
+		function _release(e){release(e, notesarray)}
+		document.body.addEventListener("keydown", _press, false);
+		document.body.addEventListener("keyup", _release, false);
+		
+		var container = document.querySelector("#keys");
+		function _show(){showedit(notesarray)}
+		container.addEventListener("mouseenter", _show, false);
+		container.addEventListener("mouseleave", removeedit, false);
+		
+		
+	</script>
+</html>
